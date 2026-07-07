@@ -96,6 +96,12 @@ Or open **Mac Toolkit** from `/Applications` after installing the pkg.
 
 ### Build a macOS Installer Package
 
+Download the latest installer from:
+
+```text
+https://github.com/Cxsmxnaut/mac-toolkit/releases/latest
+```
+
 Create a distributable `.pkg` installer:
 
 ```bash

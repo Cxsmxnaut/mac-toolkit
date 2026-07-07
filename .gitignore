@@ -10,5 +10,3 @@ venv/
 .mactoolkit/
 build/
 dist/
-!dist/
-!dist/MacToolkit-*.pkg
