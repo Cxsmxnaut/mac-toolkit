@@ -11,6 +11,7 @@ from modules.menu import main_menu
 from modules.repairs.engine import run_repairs
 from modules.report.generator import generate_reports
 from modules.system import display_system_info, get_system_info
+from modules.support_bundle import create_support_bundle
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,6 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--no-progress", action="store_true", help="Disable progress bars")
 
     subparsers.add_parser("diagnostics", help="Run diagnostics only")
+    subparsers.add_parser("auto", help="Alias for run")
     subparsers.add_parser("system", help="Show system information")
 
     report_parser = subparsers.add_parser("report", help="Run diagnostics and generate reports")
@@ -49,6 +51,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("stress", help="Run stress tests")
 
+    support_parser = subparsers.add_parser("support-bundle", help="Create a support bundle zip")
+    support_parser.add_argument("--redact", action="store_true", help="Redact common identifiers")
+
     return parser
 
 
@@ -61,12 +66,12 @@ def main(argv: list[str] | None = None) -> int:
         main_menu()
         return 0
 
-    if args.command == "run":
+    if args.command in {"run", "auto"}:
         return run_auto_service(
-            formats=args.formats,
-            run_repairs_after=args.repairs,
-            auto_confirm_repairs=args.auto_confirm_repairs,
-            show_progress=not args.no_progress,
+            formats=getattr(args, "formats", ["txt", "json", "html", "pdf"]),
+            run_repairs_after=getattr(args, "repairs", False),
+            auto_confirm_repairs=getattr(args, "auto_confirm_repairs", False),
+            show_progress=not getattr(args, "no_progress", False),
         )
 
     if args.command == "diagnostics":
@@ -92,6 +97,11 @@ def main(argv: list[str] | None = None) -> int:
         from modules.stress_engine import run_stress_tests
 
         run_stress_tests(show_progress=True)
+        return 0
+
+    if args.command == "support-bundle":
+        bundle = create_support_bundle(redact=args.redact)
+        print(f"Support bundle: {bundle}")
         return 0
 
     parser.print_help()

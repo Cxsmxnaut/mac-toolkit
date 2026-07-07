@@ -114,6 +114,13 @@ class RepairEngine:
         
         self.logger.info(f"Completed {len(self.results)} repair operations")
         return self.results
+
+    def run_safe_repairs(self, show_progress: bool = True) -> List[RepairResult]:
+        """Run repairs that do not require interactive confirmation."""
+        if not self.repairs:
+            self.discover_repairs()
+        self.repairs = [repair for repair in self.repairs if not repair.require_confirmation]
+        return self.run_all_repairs(show_progress=show_progress, auto_confirm=True)
     
     def get_results(self) -> List[RepairResult]:
         """Get the results from the last run.
@@ -209,5 +216,14 @@ def run_repairs(show_progress: bool = True, auto_confirm: bool = False) -> List[
     engine = RepairEngine()
     engine.discover_repairs()
     engine.run_all_repairs(show_progress=show_progress, auto_confirm=auto_confirm)
+    engine.display_results()
+    return engine.results
+
+
+def run_safe_repairs(show_progress: bool = True) -> List[RepairResult]:
+    """Run only non-interactive safe repairs and display results."""
+    engine = RepairEngine()
+    engine.discover_repairs()
+    engine.run_safe_repairs(show_progress=show_progress)
     engine.display_results()
     return engine.results

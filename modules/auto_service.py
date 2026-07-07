@@ -9,7 +9,7 @@ from rich.table import Table
 
 from .console import get_console
 from .diagnostics_engine import DiagnosticsEngine
-from .repairs.engine import run_repairs
+from .repairs.engine import run_repairs, run_safe_repairs
 from .report.generator import generate_reports
 from .stress_engine import run_stress_tests
 from .system import get_system_info
@@ -39,13 +39,14 @@ def run_auto_service(
     repair_results = []
     stress_results = []
 
-    should_repair = run_repairs_after or bool(config.get("auto_service.auto_repair", False))
-    if should_repair:
-        console.print()
+    console.print()
+    if run_repairs_after or bool(config.get("auto_service.auto_repair", False)):
         repair_results = run_repairs(
             show_progress=show_progress,
             auto_confirm=auto_confirm_repairs or not bool(config.get("auto_service.require_confirmation", True)),
         )
+    else:
+        repair_results = run_safe_repairs(show_progress=show_progress)
 
     if bool(config.get("auto_service.run_stress_tests", False)):
         console.print()

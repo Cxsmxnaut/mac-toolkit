@@ -148,6 +148,7 @@ python3 main.py repairs
 python3 main.py stress
 python3 main.py system
 python3 main.py report --formats txt json html pdf
+python3 main.py support-bundle --redact
 ```
 
 ### Menu Options
