@@ -12,19 +12,20 @@ from reportlab.pdfgen import canvas
 
 from ..utils.base import CheckResult, RepairResult, Status, StressTestResult
 from ..utils.health_score import calculate_health_score
+from ..utils.macos import reports_dir
 from ..system import SystemInfo
 
 
 class ReportGenerator:
     """Generate diagnostic reports in multiple formats."""
     
-    def __init__(self, output_dir: str = "reports"):
+    def __init__(self, output_dir: Optional[str] = None):
         """Initialize the report generator.
         
         Args:
             output_dir: Directory to save reports
         """
-        self.output_dir = Path(output_dir)
+        self.output_dir = Path(output_dir) if output_dir else reports_dir()
         self.output_dir.mkdir(parents=True, exist_ok=True)
     
     def generate_filename(self, format: str) -> str:

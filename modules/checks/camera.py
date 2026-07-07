@@ -17,7 +17,8 @@ class CameraCheck(BaseCheck):
                 recommendation="Test camera in Photo Booth or FaceTime",
             )
 
-        if "No camera" in output.lower() or "not detected" in output.lower():
+        output_lower = output.lower()
+        if "no camera" in output_lower or "not detected" in output_lower:
             return CheckResult(
                 name="Camera",
                 status=Status.WARNING,

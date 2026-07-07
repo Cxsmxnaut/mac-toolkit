@@ -10,10 +10,11 @@ APP_DIR="${PAYLOAD_DIR}/usr/local/lib/mac-toolkit"
 OUTPUT_DIR="${ROOT_DIR}/dist"
 PYTHON_BOOTSTRAP_VERSION="${PYTHON_BOOTSTRAP_VERSION:-3.11.9}"
 PYTHON_BOOTSTRAP_URL="${PYTHON_BOOTSTRAP_URL:-https://www.python.org/ftp/python/${PYTHON_BOOTSTRAP_VERSION}/python-${PYTHON_BOOTSTRAP_VERSION}-macos11.pkg}"
-VERSION="$(python3 - <<'PY'
+VERSION="$(python3 - "${ROOT_DIR}/pyproject.toml" <<'PY'
 import tomllib
+import sys
 
-with open("pyproject.toml", "rb") as handle:
+with open(sys.argv[1], "rb") as handle:
     print(tomllib.load(handle)["project"]["version"])
 PY
 )"
@@ -124,7 +125,7 @@ PY
 
 mkdir -p "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/MacOS"
 mkdir -p "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/Resources"
-cat > "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/Info.plist" <<'PLIST'
+cat > "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -142,9 +143,9 @@ cat > "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/Info.plist" <<
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.1.0</string>
+  <string>${VERSION}</string>
   <key>CFBundleVersion</key>
-  <string>0.1.0</string>
+  <string>${VERSION}</string>
   <key>LSMinimumSystemVersion</key>
   <string>12.0</string>
   <key>NSHighResolutionCapable</key>
@@ -155,7 +156,13 @@ PLIST
 
 cat > "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/MacOS/Mac Toolkit" <<'SH'
 #!/bin/bash
-exec /usr/local/lib/mac-toolkit/.venv/bin/python /usr/local/lib/mac-toolkit/main_gui.py
+LOG_DIR="${HOME}/Library/Logs/Mac Toolkit"
+LOG_FILE="${LOG_DIR}/gui.log"
+mkdir -p "${LOG_DIR}"
+{
+  echo "Launching Mac Toolkit GUI: $(date)"
+  exec /usr/local/bin/mactoolkit-gui
+} >> "${LOG_FILE}" 2>&1
 SH
 chmod 0755 "${CLEAN_PAYLOAD_DIR}/Applications/Mac Toolkit.app/Contents/MacOS/Mac Toolkit"
 

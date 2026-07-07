@@ -1,6 +1,5 @@
 """Cache clearing repair operation."""
 
-import subprocess
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -27,10 +26,7 @@ class CacheClearRepair(BaseRepair):
         """
         start_time = datetime.now()
         
-        cache_dirs = [
-            Path("~/Library/Caches").expanduser(),
-            Path("/private/tmp"),
-        ]
+        cache_dirs = [Path("~/Library/Caches").expanduser()]
         
         cleared_count = 0
         errors = []

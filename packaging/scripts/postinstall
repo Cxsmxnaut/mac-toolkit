@@ -62,6 +62,12 @@ exec /usr/local/lib/mac-toolkit/.venv/bin/mactoolkit "$@"
 SH
 chmod 0755 /usr/local/bin/mactoolkit
 
+cat > /usr/local/bin/mactoolkit-gui <<'SH'
+#!/bin/bash
+exec /usr/local/lib/mac-toolkit/.venv/bin/python /usr/local/lib/mac-toolkit/main_gui.py "$@"
+SH
+chmod 0755 /usr/local/bin/mactoolkit-gui
+
 if [ -d "/Applications/Mac Toolkit.app" ]; then
   chmod 0755 "/Applications/Mac Toolkit.app/Contents/MacOS/Mac Toolkit"
 fi

@@ -1,8 +1,9 @@
 """OpenCore Legacy Patcher detection diagnostic check."""
 
-import subprocess
 from pathlib import Path
+
 from ..utils.base import BaseCheck, CheckResult, Status
+from ..utils.macos import run_command_output
 
 
 class OCLPCheck(BaseCheck):
@@ -14,54 +15,47 @@ class OCLPCheck(BaseCheck):
         Returns:
             CheckResult with OCLP information
         """
-        # Check for OCLP installation
-        oclp_path = Path("/usr/local/bin/opencore-legacy-patcher")
-        
-        if oclp_path.exists():
-            try:
-                version = subprocess.check_output(
-                    "/usr/local/bin/opencore-legacy-patcher --version",
-                    shell=True,
-                    text=True,
-                    stderr=subprocess.DEVNULL
-                ).strip()
-                
-                return CheckResult(
-                    name="OpenCore Legacy Patcher",
-                    status=Status.PASS,
-                    details=f"Installed: {version}",
-                    recommendation="OCLP is installed - ensure it is kept up to date"
-                )
-            except subprocess.CalledProcessError:
-                return CheckResult(
-                    name="OpenCore Legacy Patcher",
-                    status=Status.WARNING,
-                    details="Installed but version unknown",
-                    recommendation="OCLP is installed but version could not be determined"
-                )
-        else:
-            # Check for EFI partition (indicator of OCLP or similar boot loader)
-            try:
-                efi_check = subprocess.check_output(
-                    "diskutil info disk0 | grep EFI",
-                    shell=True,
-                    text=True,
-                    stderr=subprocess.DEVNULL
-                ).strip()
-                
-                if efi_check:
-                    return CheckResult(
-                        name="OpenCore Legacy Patcher",
-                        status=Status.WARNING,
-                        details="EFI partition detected",
-                        recommendation="Custom boot loader may be in use - verify configuration"
-                    )
-            except subprocess.CalledProcessError:
-                pass
-            
+        oclp_paths = [
+            Path("/Applications/OpenCore-Patcher.app"),
+            Path("/Library/Application Support/Dortania/OpenCore-Patcher"),
+            Path("/usr/local/bin/opencore-legacy-patcher"),
+        ]
+        installed_paths = [str(path) for path in oclp_paths if path.exists()]
+
+        cli = Path("/usr/local/bin/opencore-legacy-patcher")
+        if cli.exists():
+            version = run_command_output(f"{cli} --version")
+            details = f"Installed: {version}" if version else "Installed but version unknown"
+            return CheckResult(
+                name="OpenCore Legacy Patcher",
+                status=Status.PASS if version else Status.WARNING,
+                details=details,
+                recommendation="OCLP is installed - ensure it is kept up to date",
+                metadata={"paths": installed_paths},
+            )
+
+        if installed_paths:
             return CheckResult(
                 name="OpenCore Legacy Patcher",
                 status=Status.PASS,
-                details="Not installed",
-                recommendation="OCLP not detected - running stock macOS"
+                details="OCLP app/support files detected",
+                recommendation="OCLP is installed - ensure it is kept up to date",
+                metadata={"paths": installed_paths},
             )
+
+        nvram = run_command_output("nvram 4D1FDA02-38C7-4A6A-9CC6-4BCCA8B38C14:boot-path 2>/dev/null") or ""
+        if "EFI\\OC" in nvram or "EFI/OC" in nvram:
+            return CheckResult(
+                name="OpenCore Legacy Patcher",
+                status=Status.WARNING,
+                details="OpenCore boot path detected in NVRAM",
+                recommendation="Verify OpenCore/OCLP configuration",
+                metadata={"nvram_boot_path": nvram},
+            )
+
+        return CheckResult(
+            name="OpenCore Legacy Patcher",
+            status=Status.PASS,
+            details="Not installed",
+            recommendation="OCLP not detected - running stock macOS",
+        )

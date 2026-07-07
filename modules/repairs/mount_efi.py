@@ -3,13 +3,11 @@
 from datetime import datetime
 
 from ..utils.base import BaseRepair, RepairResult
-from ..utils.macos import run_command, run_command_output
+from ..utils.macos import get_efi_identifier, run_command
 
 
 def _efi_identifier() -> str:
-    root_device = run_command_output("df / | awk 'NR==2 {print $1}'") or "/dev/disk0s1"
-    disk = root_device.split("s", 1)[0].replace("/dev/", "")
-    return f"{disk}s1"
+    return get_efi_identifier()
 
 
 class MountEFIRepair(BaseRepair):

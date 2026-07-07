@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from .console import get_console
 from .utils.logger import get_logger
+from .utils.macos import get_efi_identifier, get_wifi_interface
 
 
 @dataclass
@@ -178,9 +179,10 @@ class SystemInfoCollector:
     
     def _get_wifi(self) -> Optional[Dict[str, Any]]:
         """Get Wi-Fi information."""
-        output = self._run_command("networksetup -getairportpower en0")
+        interface = get_wifi_interface()
+        output = self._run_command(f"networksetup -getairportpower {interface}")
         if output:
-            return {"power_status": output}
+            return {"interface": interface, "power_status": output}
         return None
     
     def _get_bluetooth(self) -> Optional[Dict[str, Any]]:
@@ -192,9 +194,21 @@ class SystemInfoCollector:
     
     def _get_ethernet(self) -> Optional[Dict[str, Any]]:
         """Get Ethernet information."""
-        output = self._run_command("ifconfig en1")
-        if output and "status: active" in output.lower():
-            return {"status": "active"}
+        hardware_ports = self._run_command("networksetup -listallhardwareports") or ""
+        lines = hardware_ports.splitlines()
+        for index, line in enumerate(lines):
+            if "Ethernet" not in line and "LAN" not in line:
+                continue
+            interface = None
+            for next_line in lines[index + 1 : index + 4]:
+                if "Device:" in next_line:
+                    interface = next_line.split(":", 1)[1].strip()
+                    break
+            if not interface:
+                continue
+            output = self._run_command(f"ifconfig {interface}")
+            if output and "status: active" in output.lower():
+                return {"interface": interface, "status": "active"}
         return None
     
     def _get_thunderbolt(self) -> List[str]:
@@ -256,9 +270,10 @@ class SystemInfoCollector:
     
     def _get_efi_info(self) -> Optional[Dict[str, Any]]:
         """Get EFI information."""
-        output = self._run_command("diskutil info disk0 | grep EFI")
+        efi = get_efi_identifier()
+        output = self._run_command(f"diskutil info {efi}")
         if output:
-            return {"info": output}
+            return {"identifier": efi, "info": output}
         return None
     
     def collect(self) -> SystemInfo:

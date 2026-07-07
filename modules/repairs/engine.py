@@ -17,13 +17,13 @@ from ..utils.base import RepairResult, BaseRepair
 class RepairEngine:
     """Engine for running repair operations."""
     
-    def __init__(self, repairs_dir: str = "modules/repairs"):
+    def __init__(self, repairs_dir: Optional[str] = None):
         """Initialize the repair engine.
         
         Args:
             repairs_dir: Directory containing repair modules
         """
-        self.repairs_dir = Path(repairs_dir)
+        self.repairs_dir = Path(repairs_dir) if repairs_dir else Path(__file__).resolve().parent
         self.console = get_console()
         self.logger = get_logger()
         self.repairs: List[BaseRepair] = []

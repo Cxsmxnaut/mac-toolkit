@@ -6,18 +6,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from .macos import logs_dir
+
 
 class ToolkitLogger:
     """Centralized logging system with timestamps and debug mode support."""
     
-    def __init__(self, log_dir: str = "logs", debug: bool = False):
+    def __init__(self, log_dir: Optional[str] = None, debug: bool = False):
         """Initialize the logger.
         
         Args:
             log_dir: Directory to store log files
             debug: Enable debug mode for verbose logging
         """
-        self.log_dir = Path(log_dir)
+        self.log_dir = Path(log_dir) if log_dir else logs_dir()
         self._debug_mode = debug
         self.logger = logging.getLogger("mactoolkit")
         self.logger.setLevel(logging.DEBUG if debug else logging.INFO)

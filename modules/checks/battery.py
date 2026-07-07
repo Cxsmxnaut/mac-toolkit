@@ -29,12 +29,12 @@ class BatteryCheck(BaseCheck):
                 status = Status.PASS
                 recommendation = "Battery is functioning normally"
                 
-                if percentage < 20:
-                    status = Status.WARNING
-                    recommendation = "Battery charge is low"
-                elif percentage < 10:
+                if percentage < 10:
                     status = Status.FAIL
                     recommendation = "Battery charge is critically low"
+                elif percentage < 20:
+                    status = Status.WARNING
+                    recommendation = "Battery charge is low"
             else:
                 status = Status.WARNING
                 recommendation = "Could not determine battery percentage"

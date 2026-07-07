@@ -17,13 +17,13 @@ from .utils.base import CheckResult, Status, BaseCheck
 class DiagnosticsEngine:
     """Engine for running diagnostic checks and collecting results."""
     
-    def __init__(self, checks_dir: str = "modules/checks"):
+    def __init__(self, checks_dir: Optional[str] = None):
         """Initialize the diagnostics engine.
         
         Args:
             checks_dir: Directory containing diagnostic check modules
         """
-        self.checks_dir = Path(checks_dir)
+        self.checks_dir = Path(checks_dir) if checks_dir else Path(__file__).resolve().parent / "checks"
         self.console = get_console()
         self.logger = get_logger()
         self.checks: List[BaseCheck] = []

@@ -8,8 +8,16 @@ class TimeSyncCheck(BaseCheck):
     """Check macOS network time configuration."""
 
     def run(self) -> CheckResult:
-        enabled = run_command_output("systemsetup -getusingnetworktime 2>/dev/null") or ""
-        server = run_command_output("systemsetup -getnetworktimeserver 2>/dev/null") or ""
+        enabled = run_command_output("systemsetup -getusingnetworktime 2>&1") or ""
+        server = run_command_output("systemsetup -getnetworktimeserver 2>&1") or ""
+
+        if "administrator access" in enabled.lower():
+            return CheckResult(
+                name="Time Sync",
+                status=Status.UNKNOWN,
+                details="Network time status requires administrator access",
+                recommendation="Run with administrator privileges to verify time sync",
+            )
 
         if "on" in enabled.lower():
             return CheckResult(

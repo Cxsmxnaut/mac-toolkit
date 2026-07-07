@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import re
 import subprocess
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-from .logger import get_logger
-
-logger = get_logger()
-
 
 def run_command(
     command: str | List[str],
@@ -19,20 +15,22 @@ def run_command(
 ) -> Tuple[bool, str, str]:
     """Run a command and return success, stdout, stderr."""
     try:
+        shell = use_shell
         if isinstance(command, str) and not use_shell:
             command = command.split()
+        elif isinstance(command, str):
+            shell = True
         result = subprocess.run(
             command,
             capture_output=True,
             text=True,
             timeout=timeout,
-            shell=use_shell or isinstance(command, str),
+            shell=shell,
         )
         return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
     except subprocess.TimeoutExpired:
         return False, "", "Command timed out"
     except Exception as exc:
-        logger.debug("Command failed: %s - %s", command, exc)
         return False, "", str(exc)
 
 
@@ -40,6 +38,39 @@ def run_command_output(command: str, *, timeout: int = 30) -> Optional[str]:
     """Run a shell command and return stdout or None."""
     ok, stdout, _ = run_command(command, timeout=timeout, use_shell=True)
     return stdout if ok and stdout else None
+
+
+def app_support_dir() -> Path:
+    """Return the per-user application support directory."""
+    path = Path.home() / "Library" / "Application Support" / "Mac Toolkit"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def logs_dir() -> Path:
+    """Return the per-user logs directory."""
+    path = Path.home() / "Library" / "Logs" / "Mac Toolkit"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def reports_dir() -> Path:
+    """Return the per-user reports directory."""
+    path = app_support_dir() / "Reports"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_root_disk_identifier() -> str:
+    """Return the whole disk identifier backing the root volume."""
+    root_device = run_command_output("df / | awk 'NR==2 {print $1}'") or ""
+    match = re.search(r"/dev/(disk\d+)", root_device)
+    return match.group(1) if match else "disk0"
+
+
+def get_efi_identifier() -> str:
+    """Return the expected EFI partition identifier for the root disk."""
+    return f"{get_root_disk_identifier()}s1"
 
 
 def get_cpu_temperature() -> Optional[float]:
