@@ -26,9 +26,10 @@ classifiers = [
 
 [project.scripts]
 mactoolkit = "main:main"
+mactoolkit-gui = "main_gui:main"
 
 [tool.setuptools]
-py-modules = ["main"]
+py-modules = ["main", "main_gui"]
 
 [tool.setuptools.packages.find]
 where = ["."]

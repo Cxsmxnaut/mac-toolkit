@@ -92,6 +92,20 @@ Then run:
 mactoolkit run --no-progress
 ```
 
+Or open **Mac Toolkit** from `/Applications` after installing the pkg.
+
+### Build a macOS Installer Package
+
+Create a distributable `.pkg` installer:
+
+```bash
+./scripts/build_pkg.sh
+```
+
+The package is written to `dist/MacToolkit-<version>.pkg`. It installs Mac Toolkit to `/usr/local/lib/mac-toolkit`, creates an isolated virtual environment, places the `mactoolkit` command in `/usr/local/bin`, and installs `/Applications/Mac Toolkit.app`.
+
+The installer bundles Python 3.11 from Python.org plus dependency wheels for offline installation. If the target Mac already has Python 3.11 or newer, the installer uses the existing interpreter. If not, it installs the bundled Python runtime first. If a bundled wheel is not compatible with the target Mac's Python version or CPU architecture, the postinstall script falls back to PyPI.
+
 ## Usage
 
 ### Run the Application
