@@ -39,7 +39,7 @@ class DiagnosticsEngine:
             return
         
         # Import all modules in the checks directory
-        for finder, name, _ in pkgutil.iter_modules([str(self.checks_dir)]):
+        for finder, name, _ in sorted(pkgutil.iter_modules([str(self.checks_dir)]), key=lambda item: item.name):
             try:
                 module = importlib.import_module(f"modules.checks.{name}")
                 
@@ -61,6 +61,7 @@ class DiagnosticsEngine:
             except Exception as e:
                 self.logger.error(f"Failed to load check module {name}: {e}")
         
+        self.checks.sort(key=lambda check: check.name)
         self.logger.info(f"Discovered {len(self.checks)} diagnostic checks")
     
     def run_check(self, check: BaseCheck) -> CheckResult:

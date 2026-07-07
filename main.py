@@ -7,6 +7,7 @@ import sys
 
 from modules.auto_service import run_auto_service
 from modules.diagnostics_engine import run_diagnostics
+from modules.install_validator import validate_install
 from modules.menu import main_menu
 from modules.repairs.engine import run_repairs
 from modules.report.generator import generate_reports
@@ -22,20 +23,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    run_parser = subparsers.add_parser("run", help="Run full diagnostics and generate reports")
-    run_parser.add_argument(
-        "--formats",
-        nargs="+",
-        choices=["txt", "json", "html", "pdf"],
-        default=["txt", "json", "html", "pdf"],
-        help="Report formats to generate",
-    )
-    run_parser.add_argument("--repairs", action="store_true", help="Offer repair operations after diagnostics")
-    run_parser.add_argument("--auto-confirm-repairs", action="store_true", help="Run repairs without prompting")
-    run_parser.add_argument("--no-progress", action="store_true", help="Disable progress bars")
+    def add_run_options(run_parser: argparse.ArgumentParser) -> None:
+        run_parser.add_argument(
+            "--formats",
+            nargs="+",
+            choices=["txt", "json", "html", "pdf"],
+            default=["txt", "json", "html", "pdf"],
+            help="Report formats to generate",
+        )
+        run_parser.add_argument("--repairs", action="store_true", help="Offer repair operations after diagnostics")
+        run_parser.add_argument("--auto-confirm-repairs", action="store_true", help="Run repairs without prompting")
+        run_parser.add_argument("--no-progress", action="store_true", help="Disable progress bars")
+
+    add_run_options(subparsers.add_parser("run", help="Run full diagnostics and generate reports"))
+    add_run_options(subparsers.add_parser("auto", help="Alias for run"))
 
     subparsers.add_parser("diagnostics", help="Run diagnostics only")
-    subparsers.add_parser("auto", help="Alias for run")
     subparsers.add_parser("system", help="Show system information")
 
     report_parser = subparsers.add_parser("report", help="Run diagnostics and generate reports")
@@ -53,6 +56,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     support_parser = subparsers.add_parser("support-bundle", help="Create a support bundle zip")
     support_parser.add_argument("--redact", action="store_true", help="Redact common identifiers")
+
+    subparsers.add_parser("validate-install", help="Validate installed runtime paths and commands")
 
     return parser
 
@@ -103,6 +108,9 @@ def main(argv: list[str] | None = None) -> int:
         bundle = create_support_bundle(redact=args.redact)
         print(f"Support bundle: {bundle}")
         return 0
+
+    if args.command == "validate-install":
+        return validate_install()
 
     parser.print_help()
     return 2

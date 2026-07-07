@@ -116,6 +116,17 @@ class ReportGenerator:
                 lines.append(f"  {rec}")
             lines.append("")
 
+        warnings = [result for result in results if result.status in {Status.WARNING, Status.FAIL}]
+        if warnings:
+            lines.append("FINDINGS")
+            lines.append("-" * 60)
+            for result in warnings:
+                severity = "NEEDS ATTENTION" if result.status == Status.FAIL else "WARNING"
+                lines.append(f"[{severity}] {result.name}: {result.details}")
+                if result.recommendation:
+                    lines.append(f"  Next step: {result.recommendation}")
+            lines.append("")
+
         if repairs:
             lines.append("REPAIRS PERFORMED")
             lines.append("-" * 60)

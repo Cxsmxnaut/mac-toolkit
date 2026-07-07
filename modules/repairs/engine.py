@@ -39,7 +39,7 @@ class RepairEngine:
             return
         
         # Import all modules in the repairs directory
-        for finder, name, _ in pkgutil.iter_modules([str(self.repairs_dir)]):
+        for finder, name, _ in sorted(pkgutil.iter_modules([str(self.repairs_dir)]), key=lambda item: item.name):
             try:
                 module = importlib.import_module(f"modules.repairs.{name}")
                 
@@ -60,6 +60,7 @@ class RepairEngine:
             except Exception as e:
                 self.logger.error(f"Failed to load repair module {name}: {e}")
         
+        self.repairs.sort(key=lambda repair: repair.name)
         self.logger.info(f"Discovered {len(self.repairs)} repair operations")
     
     def run_repair(self, repair: BaseRepair) -> RepairResult:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import platform
 import re
 import zipfile
 from datetime import datetime
@@ -23,6 +24,16 @@ def _redact_text(value: str, replacements: dict[str, str]) -> str:
             redacted = redacted.replace(source, replacement)
     redacted = re.sub(r"\b([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b", "<mac-address>", redacted)
     redacted = re.sub(r"\b\d{1,3}(?:\.\d{1,3}){3}\b", "<ip-address>", redacted)
+    redacted = re.sub(
+        r"\b[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\b",
+        "<uuid>",
+        redacted,
+    )
+    redacted = re.sub(
+        r"(?i)\b(?:[0-9a-f]{1,4}:){2,7}[0-9a-f]{1,4}(?:%\w+)?\b",
+        "<ipv6-address>",
+        redacted,
+    )
     return redacted
 
 
@@ -54,7 +65,9 @@ def create_support_bundle(*, redact: bool = False) -> Path:
         replacements = {
             str(Path.home()): "~",
             Path.home().name: "<user>",
+            platform.node(): "<hostname>",
             system_info.serial_number: "<serial-number>",
+            system_info.model: "<model>",
         }
 
     diagnostics = [result.to_dict() for result in results]
