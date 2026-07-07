@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mac-toolkit"
+version = "0.1.0"
+description = "All-in-one macOS diagnostics, repair, and stress-testing CLI."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Mac Toolkit Contributors" }
+]
+dependencies = [
+    "rich==15.0.0",
+    "reportlab==4.2.5",
+]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: System :: Systems Administration",
+]
+
+[project.scripts]
+mactoolkit = "main:main"
+
+[tool.setuptools]
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["modules*"]
